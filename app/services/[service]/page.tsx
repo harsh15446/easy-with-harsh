@@ -4,7 +4,7 @@ import { useParams } from "next/navigation";
 import { services } from "../../data/services";
 import { useState } from "react";
 import Image from "next/image";
-import { db } from "../../../firebase";
+import { db } from "../../firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 
