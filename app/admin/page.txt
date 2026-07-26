@@ -1,0 +1,19 @@
+export default function Admin(){
+
+return(
+
+<div className="p-10">
+
+<h1 className="text-4xl font-bold">
+EASY WITH HARSH ADMIN
+</h1>
+
+<p>
+Admin page working
+</p>
+
+</div>
+
+);
+
+}

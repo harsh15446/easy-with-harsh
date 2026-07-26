@@ -1,49 +1,32 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { db } from "../../firebase";
-import { collection, getDocs, updateDoc, doc } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  doc,
+  updateDoc
+} from "firebase/firestore";
 
 
-export default function Admin(){
+export default function AdminPage() {
 
-const router = useRouter();
 
 const [orders,setOrders] = useState<any[]>([]);
-const [search,setSearch] = useState("");
 const [loading,setLoading] = useState(true);
 
 
 
-useEffect(()=>{
+const getOrders = async()=>{
 
-const admin = localStorage.getItem("admin");
+try{
 
-
-if(admin !== "true"){
-
-router.push("/admin/login");
-
-return;
-
-}
-
-
-fetchOrders();
-
-
-},[]);
-
-
-
-
-
-const fetchOrders = async()=>{
 
 const snap = await getDocs(
 collection(db,"orders")
 );
+
 
 
 const data = snap.docs.map((item)=>({
@@ -56,9 +39,36 @@ id:item.id,
 
 setOrders(data);
 
+
+
+}
+catch(error){
+
+console.log("Firebase Error:",error);
+
+}
+
+
+finally{
+
 setLoading(false);
 
+}
+
+
 };
+
+
+
+
+
+useEffect(()=>{
+
+getOrders();
+
+},[]);
+
+
 
 
 
@@ -68,6 +78,9 @@ const updateStatus = async(
 id:string,
 status:string
 )=>{
+
+
+try{
 
 
 await updateDoc(
@@ -81,71 +94,20 @@ status:status
 );
 
 
+getOrders();
 
-setOrders((old)=>
 
-old.map((order)=>
+}
+catch(error){
 
-order.id===id
+console.log(error);
 
-?
-
-{
-...order,
-status:status
 }
 
-:
-
-order
-
-)
-
-);
-
 
 };
 
 
-
-
-
-
-const logout = ()=>{
-
-localStorage.removeItem("admin");
-
-router.push("/admin/login");
-
-};
-
-
-
-
-
-const openWhatsApp = (mobile:string,name:string,orderID:string)=>{
-
-
-const number = "91" + mobile;
-
-
-const message =
-`Hello ${name},
-Your Order ID: ${orderID}
-
-Thank you for using EASY WITH HARSH.`;
-
-
-window.open(
-
-`https://wa.me/${number}?text=${encodeURIComponent(message)}`,
-
-"_blank"
-
-);
-
-
-};
 
 
 
@@ -155,30 +117,16 @@ if(loading){
 
 return(
 
-<div className="p-10 text-2xl">
+<div className="p-10 text-2xl font-bold">
 
-Loading...
+Loading Orders...
 
 </div>
 
-);
+)
 
 }
 
-
-
-
-
-const filteredOrders = orders.filter((order)=>
-
-order.name?.toLowerCase()
-.includes(search.toLowerCase())
-
-||
-
-order.mobile?.includes(search)
-
-);
 
 
 
@@ -186,55 +134,35 @@ order.mobile?.includes(search)
 
 return(
 
-<main className="min-h-screen bg-gray-100 p-6">
+
+<main className="min-h-screen bg-gray-100 p-5">
 
 
+<div className="max-w-6xl mx-auto">
 
-<div className="flex justify-between items-center mb-6">
 
+<h1 className="text-4xl font-bold mb-6">
 
-<h1 className="text-3xl font-bold text-blue-700">
-
-💻 EASY WITH HARSH ADMIN
+Admin Dashboard
 
 </h1>
 
 
 
-<button
 
-onClick={logout}
+{
 
-className="bg-red-600 text-white px-5 py-2 rounded"
+orders.length===0 ?
 
->
 
-Logout
+<div className="bg-white p-5 rounded-xl shadow">
 
-</button>
-
+No Orders Found
 
 </div>
 
 
-
-
-
-<input
-
-placeholder="Search Name or Mobile"
-
-className="w-full p-3 border rounded mb-6"
-
-value={search}
-
-onChange={(e)=>setSearch(e.target.value)}
-
-/>
-
-
-
-
+:
 
 
 <div className="grid gap-5">
@@ -242,82 +170,126 @@ onChange={(e)=>setSearch(e.target.value)}
 
 {
 
-filteredOrders.map((order)=>(
+orders.map((order)=>(
 
 
 <div
 
 key={order.id}
 
-className="bg-white p-5 rounded-xl shadow"
+className="bg-white p-5 rounded-2xl shadow"
 
 >
 
 
+<h2 className="text-2xl font-bold text-blue-700">
 
-<p className="font-bold">
-
-🆔 Order ID: {order.orderID || "Old Order"}
-
-</p>
-
-
-
-<h2 className="text-xl font-bold mt-2">
-
-👤 {order.name}
+{order.service}
 
 </h2>
 
 
 
+<div className="mt-3 space-y-1">
+
 
 <p>
 
-📱 {order.mobile}
+👤 Name:
+{" "}
+{order.customerName || order.name || "N/A"}
+
+</p>
+
+
+<p>
+
+📱 Mobile:
+{" "}
+{order.mobile || "N/A"}
 
 </p>
 
 
 
+<p>
 
-<div className="flex gap-3 mt-3">
+🏠 Address:
+{" "}
+{order.address || "N/A"}
+
+</p>
+
+
+
+<p>
+
+💰 Charge:
+{" "}
+₹{order.price || 0}
+
+</p>
+
+
+
+<p>
+
+💳 Payment:
+{" "}
+{order.paymentStatus || "Pending"}
+
+</p>
+
+
+
+<p>
+
+📌 Status:
+{" "}
+{order.status || "Pending"}
+
+</p>
+
+
+</div>
+
+
+
+
+
+<div className="flex gap-3 mt-5 flex-wrap">
+
+
+<a
+
+href={`https://wa.me/91${order.mobile}`}
+
+target="_blank"
+
+className="bg-green-600 text-white px-4 py-2 rounded-xl"
+
+>
+
+WhatsApp
+
+</a>
+
+
+
 
 
 <a
 
 href={`tel:${order.mobile}`}
 
-className="bg-blue-600 text-white px-4 py-2 rounded"
+className="bg-blue-600 text-white px-4 py-2 rounded-xl"
 
 >
 
-📞 Call
+Call
 
 </a>
 
-
-
-
-<button
-
-onClick={()=>openWhatsApp(
-
-order.mobile,
-
-order.name,
-
-order.orderID
-
-)}
-
-className="bg-green-600 text-white px-4 py-2 rounded"
-
->
-
-💬 WhatsApp
-
-</button>
 
 
 </div>
@@ -326,88 +298,54 @@ className="bg-green-600 text-white px-4 py-2 rounded"
 
 
 
-<p className="mt-3">
-
-🛠 {order.service}
-
-</p>
 
 
-<p>
+<select
 
-💰 {order.price}
+className="border p-3 rounded-xl mt-5"
 
-</p>
+value={order.status || "Pending"}
 
-
-
-
-{
-
-order.document &&
-
-<a
-
-href={order.document}
-
-target="_blank"
-
-className="text-blue-600 underline block mt-3"
-
->
-
-📂 Open Document
-
-</a>
-
+onChange={(e)=>
+updateStatus(
+order.id,
+e.target.value
+)
 }
 
-
-
-
-
-<p className="font-bold mt-3">
-
-Status: {order.status}
-
-</p>
-
-
-
-
-
-<div className="flex gap-3 mt-3">
-
-
-<button
-
-onClick={()=>updateStatus(order.id,"Processing")}
-
-className="bg-blue-600 text-white px-4 py-2 rounded"
-
 >
+
+
+<option value="Pending">
+
+Pending
+
+</option>
+
+
+<option value="Processing">
 
 Processing
 
-</button>
+</option>
 
 
-
-
-<button
-
-onClick={()=>updateStatus(order.id,"Completed")}
-
-className="bg-green-700 text-white px-4 py-2 rounded"
-
->
+<option value="Completed">
 
 Completed
 
-</button>
+</option>
 
 
-</div>
+<option value="Cancelled">
+
+Cancelled
+
+</option>
+
+
+</select>
+
 
 
 
@@ -417,7 +355,15 @@ Completed
 
 ))
 
+
 }
+
+
+</div>
+
+
+}
+
 
 
 </div>
@@ -425,7 +371,8 @@ Completed
 
 </main>
 
-);
+
+)
 
 
 }
