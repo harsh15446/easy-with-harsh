@@ -16,7 +16,6 @@ import {
 
 export default function ServicePage(){
 
-
 const params = useParams();
 
 const slug = params.service as string;
@@ -61,13 +60,18 @@ Service Not Found
 
 
 
+
 const uploadToCloudinary = async(file:File)=>{
 
 
 const formData = new FormData();
 
 
-formData.append("file",file);
+formData.append(
+"file",
+file
+);
+
 
 
 formData.append(
@@ -96,6 +100,7 @@ body:formData
 const data = await res.json();
 
 
+
 if(!data.secure_url){
 
 throw new Error("Cloudinary Upload Failed");
@@ -103,10 +108,12 @@ throw new Error("Cloudinary Upload Failed");
 }
 
 
+
 return data.secure_url;
 
 
 };
+
 
 
 
@@ -129,7 +136,38 @@ window.open(
 
 
 
-const submitOrder=async()=>{
+const sendTelegram = async()=>{
+
+
+await fetch("/api/telegram",{
+
+method:"POST",
+
+headers:{
+
+"Content-Type":"application/json"
+
+},
+
+body:JSON.stringify({
+
+service:service.name,
+
+name:name,
+
+mobile:mobile,
+
+price:service.price,
+
+address:address
+
+})
+
+});
+
+
+};
+const submitOrder = async()=>{
 
 
 if(!paymentDone){
@@ -158,7 +196,8 @@ try{
 setLoading(true);
 
 
-let documents:any={};
+
+let documents:any = {};
 
 
 
@@ -170,12 +209,14 @@ await uploadToCloudinary(aadhaarFront);
 }
 
 
+
 if(aadhaarBack){
 
 documents.aadhaarBack =
 await uploadToCloudinary(aadhaarBack);
 
 }
+
 
 
 if(photo){
@@ -186,6 +227,7 @@ await uploadToCloudinary(photo);
 }
 
 
+
 if(signature){
 
 documents.signature =
@@ -194,21 +236,28 @@ await uploadToCloudinary(signature);
 }
 
 
+
 if(birthProof){
 
 documents.proofOfBirth =
 await uploadToCloudinary(birthProof);
 
 }
+
+
+
+
 await addDoc(
 
 collection(db,"orders"),
 
 {
 
+
 service:service.name,
 
 price:service.price,
+
 
 customerName:name,
 
@@ -236,37 +285,7 @@ createdAt:serverTimestamp()
 
 
 
-const telegramRes = await fetch("/api/telegram",{
-
-method:"POST",
-
-headers:{
-
-"Content-Type":"application/json"
-
-},
-
-body:JSON.stringify({
-
-service:service.name,
-
-name:name,
-
-mobile:mobile,
-
-price:service.price,
-
-address:address
-
-})
-
-});
-
-
-const telegramData = await telegramRes.json();
-
-
-console.log("Telegram API Response:", telegramData);
+await sendTelegram();
 
 
 
@@ -281,6 +300,8 @@ setName("");
 setMobile("");
 
 setAddress("");
+
+setPaymentDone(false);
 
 
 
@@ -308,15 +329,14 @@ setLoading(false);
 }
 
 
-
 };
-
 return(
 
 <main className="min-h-screen bg-gray-100 p-5">
 
 
 <div className="max-w-xl mx-auto bg-white p-6 rounded-2xl shadow">
+
 
 
 <h1 className="text-3xl font-bold text-blue-700">
@@ -350,6 +370,7 @@ onChange={(e)=>setName(e.target.value)}
 
 
 
+
 <input
 
 className="border p-3 w-full rounded mt-4"
@@ -361,6 +382,8 @@ value={mobile}
 onChange={(e)=>setMobile(e.target.value)}
 
 />
+
+
 
 
 
@@ -378,11 +401,14 @@ onChange={(e)=>setAddress(e.target.value)}
 
 
 
+
+
 <h2 className="text-xl font-bold mt-6">
 
 📂 Upload Documents
 
 </h2>
+
 
 
 
@@ -406,6 +432,7 @@ setAadhaarFront(e.target.files?.[0] || null)
 
 
 
+
 <label className="block mt-3">
 Aadhaar Back
 </label>
@@ -423,6 +450,7 @@ setAadhaarBack(e.target.files?.[0] || null)
 }
 
 />
+
 
 
 
@@ -446,6 +474,7 @@ setPhoto(e.target.files?.[0] || null)
 
 
 
+
 <label className="block mt-3">
 Signature
 </label>
@@ -466,6 +495,7 @@ setSignature(e.target.files?.[0] || null)
 
 
 
+
 <label className="block mt-3">
 Proof of Birth
 </label>
@@ -483,6 +513,7 @@ setBirthProof(e.target.files?.[0] || null)
 }
 
 />
+
 
 
 
@@ -523,6 +554,7 @@ UPI ID: KSHATRIYA0665@PTYES
 
 
 
+
 <button
 
 onClick={sendWhatsApp}
@@ -541,17 +573,22 @@ className="bg-green-600 text-white w-full p-3 rounded-xl mt-5"
 
 <label className="flex gap-2 mt-5">
 
+
 <input
 
 type="checkbox"
 
 checked={paymentDone}
 
-onChange={(e)=>setPaymentDone(e.target.checked)}
+onChange={(e)=>
+setPaymentDone(e.target.checked)
+}
 
 />
 
+
 Payment Screenshot Sent
+
 
 </label>
 
@@ -569,6 +606,7 @@ className="bg-blue-700 text-white w-full p-3 rounded-xl mt-5"
 
 >
 
+
 {
 
 loading ? "Uploading..." : "Submit Order"
@@ -576,7 +614,10 @@ loading ? "Uploading..." : "Submit Order"
 }
 
 
+
 </button>
+
+
 
 
 
@@ -584,6 +625,7 @@ loading ? "Uploading..." : "Submit Order"
 
 
 </main>
+
 
 );
 
