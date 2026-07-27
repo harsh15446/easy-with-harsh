@@ -12,154 +12,192 @@ import {
 } from "firebase/firestore";
 
 
-export default function Admin() {
+export default function Admin(){
 
-  const [orders, setOrders] = useState<any[]>([]);
 
+const [orders,setOrders]=useState<any[]>([]);
 
-  const loadOrders = async () => {
 
-    const snapshot = await getDocs(
-      collection(db, "orders")
-    );
 
-    const data:any[] = [];
+const loadOrders=async()=>{
 
-    snapshot.forEach((item)=>{
 
-      data.push({
-        id:item.id,
-        ...item.data()
-      });
+const snapshot = await getDocs(
+collection(db,"orders")
+);
 
-    });
 
-    setOrders(data);
+const data:any[]=[];
 
-  };
 
+snapshot.forEach((item)=>{
 
 
-  useEffect(()=>{
+data.push({
 
-    loadOrders();
+id:item.id,
 
-  },[]);
+...item.data()
 
+});
 
 
+});
 
 
-  const completeOrder = async(id:string)=>{
+setOrders(data);
 
-    await updateDoc(
-      doc(db,"orders",id),
-      {
-        status:"Completed"
-      }
-    );
 
-    loadOrders();
+};
 
-  };
 
 
 
 
+useEffect(()=>{
 
+loadOrders();
 
-  const deleteOrder = async(id:string)=>{
+},[]);
 
-    await deleteDoc(
-      doc(db,"orders",id)
-    );
 
-    loadOrders();
 
-  };
 
 
 
 
+const completeOrder=async(id:string)=>{
 
 
-  const deleteAllOrders = async()=>{
+await updateDoc(
 
+doc(db,"orders",id),
 
-    const confirmDelete = confirm(
-      "Kya aap saare orders delete karna chahte hain?"
-    );
+{
 
+status:"Completed"
 
-    if(!confirmDelete) return;
+}
 
+);
 
 
-    const snapshot = await getDocs(
-      collection(db,"orders")
-    );
+loadOrders();
 
 
+};
 
-    for(const item of snapshot.docs){
 
-      await deleteDoc(
-        doc(db,"orders",item.id)
-      );
 
-    }
 
 
-    loadOrders();
 
 
-  };
 
+const deleteOrder=async(id:string)=>{
 
 
+await deleteDoc(
 
+doc(db,"orders",id)
 
+);
 
 
-  const totalOrders = orders.length;
+loadOrders();
 
 
+};
 
-  const pendingOrders = orders.filter(
-    (order)=>order.status?.toLowerCase()==="pending"
-  ).length;
 
 
 
 
-  const completedOrders = orders.filter(
-    (order)=>order.status==="Completed"
-  ).length;
 
 
+const deleteAllOrders=async()=>{
 
 
+const check=confirm(
+"Kya aap saare orders delete karna chahte hain?"
+);
 
 
 
-  const totalAmount = orders.reduce(
+if(!check)return;
 
-    (sum,order)=>{
 
-      let price = String(order.price || "");
 
-      price = price.replace(/₹/g,"");
+const snapshot=await getDocs(
+collection(db,"orders")
+);
 
 
-      return sum + (Number(price) || 0);
 
+for(const item of snapshot.docs){
 
-    },
 
-    0
+await deleteDoc(
 
-  );
+doc(db,"orders",item.id)
 
+);
+
+
+}
+
+
+
+loadOrders();
+
+
+};
+
+
+
+
+
+
+
+const totalOrders=orders.length;
+
+
+
+const pendingOrders=orders.filter(
+
+(order)=>
+
+order.status?.toLowerCase()==="pending"
+
+).length;
+
+
+
+
+
+const completedOrders=orders.filter(
+
+(order)=>
+
+order.status==="Completed"
+
+).length;
+
+
+
+
+
+
+
+const totalAmount=orders.reduce(
+
+(sum,order)=>
+
+sum + Number(order.price || 0),
+
+0
+
+);
 
 
 
@@ -172,24 +210,45 @@ return (
 <main className="min-h-screen bg-gray-100 p-5">
 
 
+<div className="max-w-6xl mx-auto">
 
-<div className="bg-blue-700 text-white p-6 rounded-xl shadow">
 
 
-<h1 className="text-3xl font-bold">
+
+
+<div className="bg-blue-700 text-white p-6 rounded-2xl shadow text-center">
+
+
+<img
+
+src="/logo.png"
+
+className="w-24 h-24 mx-auto rounded-full"
+
+/>
+
+
+
+<h1 className="text-3xl font-bold mt-3">
 
 💻 EASY WITH HARSH
 
 </h1>
 
 
+
 <p>
+
 Digital Service Center | Jaunpur
+
 </p>
 
 
-<h2 className="mt-2">
+
+<h2 className="text-xl mt-2">
+
 ADMIN PANEL
+
 </h2>
 
 
@@ -208,11 +267,15 @@ ADMIN PANEL
 <div className="bg-white p-5 rounded-xl shadow text-center">
 
 <h2 className="font-bold">
+
 📦 Total Orders
+
 </h2>
 
 <p className="text-4xl font-bold text-blue-700">
+
 {totalOrders}
+
 </p>
 
 </div>
@@ -224,11 +287,15 @@ ADMIN PANEL
 <div className="bg-white p-5 rounded-xl shadow text-center">
 
 <h2 className="font-bold">
+
 ⏳ Pending
+
 </h2>
 
 <p className="text-4xl font-bold text-orange-600">
+
 {pendingOrders}
+
 </p>
 
 </div>
@@ -240,11 +307,15 @@ ADMIN PANEL
 <div className="bg-white p-5 rounded-xl shadow text-center">
 
 <h2 className="font-bold">
+
 ✅ Completed
+
 </h2>
 
 <p className="text-4xl font-bold text-green-600">
+
 {completedOrders}
+
 </p>
 
 </div>
@@ -256,11 +327,15 @@ ADMIN PANEL
 <div className="bg-white p-5 rounded-xl shadow text-center">
 
 <h2 className="font-bold">
+
 💰 Revenue
+
 </h2>
 
 <p className="text-4xl font-bold">
+
 ₹{totalAmount}
+
 </p>
 
 </div>
@@ -268,7 +343,6 @@ ADMIN PANEL
 
 
 </div>
-
 
 
 
@@ -286,13 +360,6 @@ className="mt-6 bg-red-600 text-white px-6 py-3 rounded-xl font-bold"
 🗑 Delete All Orders
 
 </button>
-
-
-
-
-
-
-
 <h2 className="text-3xl font-bold mt-8 mb-5">
 
 📋 Customer Orders
@@ -303,14 +370,12 @@ className="mt-6 bg-red-600 text-white px-6 py-3 rounded-xl font-bold"
 
 
 
-
-
 {
 
 orders.length===0 ?
 
 
-<div className="bg-white p-5 rounded-xl">
+<div className="bg-white p-5 rounded-xl shadow">
 
 No Orders Found
 
@@ -334,7 +399,9 @@ className="bg-white p-6 rounded-xl shadow mb-5"
 >
 
 
-<h3 className="text-xl font-bold mb-3">
+
+
+<h3 className="text-xl font-bold text-blue-700">
 
 🆕 {order.service}
 
@@ -342,46 +409,263 @@ className="bg-white p-6 rounded-xl shadow mb-5"
 
 
 
-<p>
-👤 Name : {order.name}
+
+
+<p className="mt-3">
+
+👤 Name : {order.customerName || "Not Available"}
+
 </p>
 
 
+
+
+
 <p>
-📱 Mobile : {order.mobile}
+
+📱 Mobile : {order.mobile || "Not Available"}
+
 </p>
 
 
+
+
+
 <p>
-📍 Address : {order.address}
+
+📍 Address : {order.address || "Not Available"}
+
 </p>
 
 
+
+
+
 <p>
-💰 Price : ₹{String(order.price || "").replace(/₹/g,"")}
+
+💰 Price : ₹{order.price || 0}
+
 </p>
 
 
+
+
+
 <p>
-🧾 Transaction : {order.transaction}
+
+🧾 Transaction : {order.transaction || "Not Available"}
+
 </p>
 
 
+
+
+
 <p>
+
 📌 Status : {order.status}
+
 </p>
 
 
 
 
-<div className="flex gap-3 mt-5">
+
+
+
+{
+
+order.createdAt && (
+
+
+<p className="mt-2 font-bold text-blue-700">
+
+🕒 Order Date & Time :{" "}
+
+{
+
+order.createdAt.toDate().toLocaleString("en-IN")
+
+}
+
+
+</p>
+
+
+)
+
+}
+
+
+
+
+
+
+<div className="mt-5">
+
+
+<h3 className="font-bold text-lg">
+
+📂 Customer Documents
+
+</h3>
+
+
+
+
+<div className="flex flex-wrap gap-3 mt-3">
+
+
+
+
+
+{
+
+order.documents?.aadhaarFront &&
+
+<a
+
+href={order.documents.aadhaarFront}
+
+target="_blank"
+
+rel="noopener noreferrer"
+
+className="bg-blue-600 text-white px-4 py-2 rounded-xl"
+
+>
+
+🪪 Aadhaar Front
+
+</a>
+
+}
+
+
+
+
+
+
+
+{
+
+order.documents?.aadhaarBack &&
+
+<a
+
+href={order.documents.aadhaarBack}
+
+target="_blank"
+
+rel="noopener noreferrer"
+
+className="bg-blue-600 text-white px-4 py-2 rounded-xl"
+
+>
+
+🪪 Aadhaar Back
+
+</a>
+
+}
+
+
+
+
+
+
+{
+
+order.documents?.photo &&
+
+<a
+
+href={order.documents.photo}
+
+target="_blank"
+
+rel="noopener noreferrer"
+
+className="bg-purple-600 text-white px-4 py-2 rounded-xl"
+
+>
+
+📷 Photo
+
+</a>
+
+}
+
+
+
+
+
+
+{
+
+order.documents?.signature &&
+
+<a
+
+href={order.documents.signature}
+
+target="_blank"
+
+rel="noopener noreferrer"
+
+className="bg-green-600 text-white px-4 py-2 rounded-xl"
+
+>
+
+✍️ Signature
+
+</a>
+
+}
+
+
+
+
+
+
+{
+
+order.documents?.proofOfBirth &&
+
+<a
+
+href={order.documents.proofOfBirth}
+
+target="_blank"
+
+rel="noopener noreferrer"
+
+className="bg-orange-600 text-white px-4 py-2 rounded-xl"
+
+>
+
+📄 Birth Proof
+
+</a>
+
+}
+
+
+
+
+</div>
+
+
+</div>
+<div className="flex gap-3 mt-6">
+
 
 
 <button
 
 onClick={()=>completeOrder(order.id)}
 
-className="bg-green-600 text-white px-5 py-2 rounded"
+className="bg-green-600 text-white px-5 py-2 rounded-xl"
 
 >
 
@@ -397,7 +681,7 @@ className="bg-green-600 text-white px-5 py-2 rounded"
 
 onClick={()=>deleteOrder(order.id)}
 
-className="bg-red-600 text-white px-5 py-2 rounded"
+className="bg-red-600 text-white px-5 py-2 rounded-xl"
 
 >
 
@@ -408,6 +692,8 @@ className="bg-red-600 text-white px-5 py-2 rounded"
 
 
 </div>
+
+
 
 
 
@@ -422,8 +708,11 @@ className="bg-red-600 text-white px-5 py-2 rounded"
 
 
 
+</div>
+
 
 </main>
+
 
 );
 
