@@ -2,150 +2,305 @@
 
 import { useEffect, useState } from "react";
 import { db } from "../firebase";
+
 import {
   collection,
   getDocs,
+  deleteDoc,
   doc,
-  updateDoc
+  updateDoc,
 } from "firebase/firestore";
 
 
-export default function AdminPage() {
+export default function Admin() {
 
+  const [orders, setOrders] = useState<any[]>([]);
 
-const [orders,setOrders] = useState<any[]>([]);
-const [loading,setLoading] = useState(true);
 
+  const loadOrders = async () => {
 
+    const snapshot = await getDocs(
+      collection(db, "orders")
+    );
 
-const getOrders = async()=>{
+    const data:any[] = [];
 
-try{
+    snapshot.forEach((item)=>{
 
+      data.push({
+        id:item.id,
+        ...item.data()
+      });
 
-const snap = await getDocs(
-collection(db,"orders")
-);
+    });
 
+    setOrders(data);
 
+  };
 
-const data = snap.docs.map((item)=>({
 
-id:item.id,
-...item.data()
 
-}));
+  useEffect(()=>{
 
+    loadOrders();
 
-setOrders(data);
+  },[]);
 
 
 
-}
-catch(error){
 
-console.log("Firebase Error:",error);
 
-}
+  const completeOrder = async(id:string)=>{
 
+    await updateDoc(
+      doc(db,"orders",id),
+      {
+        status:"Completed"
+      }
+    );
 
-finally{
+    loadOrders();
 
-setLoading(false);
+  };
 
-}
 
 
-};
 
 
 
+  const deleteOrder = async(id:string)=>{
 
+    await deleteDoc(
+      doc(db,"orders",id)
+    );
 
-useEffect(()=>{
+    loadOrders();
 
-getOrders();
+  };
 
-},[]);
 
 
 
 
 
+  const deleteAllOrders = async()=>{
 
 
-const updateStatus = async(
-id:string,
-status:string
-)=>{
+    const confirmDelete = confirm(
+      "Kya aap saare orders delete karna chahte hain?"
+    );
 
 
-try{
+    if(!confirmDelete) return;
 
 
-await updateDoc(
 
-doc(db,"orders",id),
+    const snapshot = await getDocs(
+      collection(db,"orders")
+    );
 
-{
-status:status
-}
 
-);
 
+    for(const item of snapshot.docs){
 
-getOrders();
+      await deleteDoc(
+        doc(db,"orders",item.id)
+      );
 
+    }
 
-}
-catch(error){
 
-console.log(error);
+    loadOrders();
 
-}
 
+  };
 
-};
 
 
 
 
 
 
+  const totalOrders = orders.length;
 
-if(loading){
 
-return(
 
-<div className="p-10 text-2xl font-bold">
+  const pendingOrders = orders.filter(
+    (order)=>order.status?.toLowerCase()==="pending"
+  ).length;
 
-Loading Orders...
 
-</div>
 
-)
 
-}
+  const completedOrders = orders.filter(
+    (order)=>order.status==="Completed"
+  ).length;
 
 
 
 
 
 
-return(
 
+  const totalAmount = orders.reduce(
+
+    (sum,order)=>{
+
+      let price = String(order.price || "");
+
+      price = price.replace(/₹/g,"");
+
+
+      return sum + (Number(price) || 0);
+
+
+    },
+
+    0
+
+  );
+
+
+
+
+
+
+
+
+return (
 
 <main className="min-h-screen bg-gray-100 p-5">
 
 
-<div className="max-w-6xl mx-auto">
+
+<div className="bg-blue-700 text-white p-6 rounded-xl shadow">
 
 
-<h1 className="text-4xl font-bold mb-6">
+<h1 className="text-3xl font-bold">
 
-Admin Dashboard
+💻 EASY WITH HARSH
 
 </h1>
+
+
+<p>
+Digital Service Center | Jaunpur
+</p>
+
+
+<h2 className="mt-2">
+ADMIN PANEL
+</h2>
+
+
+</div>
+
+
+
+
+
+
+
+<div className="grid md:grid-cols-4 gap-5 mt-6">
+
+
+
+<div className="bg-white p-5 rounded-xl shadow text-center">
+
+<h2 className="font-bold">
+📦 Total Orders
+</h2>
+
+<p className="text-4xl font-bold text-blue-700">
+{totalOrders}
+</p>
+
+</div>
+
+
+
+
+
+<div className="bg-white p-5 rounded-xl shadow text-center">
+
+<h2 className="font-bold">
+⏳ Pending
+</h2>
+
+<p className="text-4xl font-bold text-orange-600">
+{pendingOrders}
+</p>
+
+</div>
+
+
+
+
+
+<div className="bg-white p-5 rounded-xl shadow text-center">
+
+<h2 className="font-bold">
+✅ Completed
+</h2>
+
+<p className="text-4xl font-bold text-green-600">
+{completedOrders}
+</p>
+
+</div>
+
+
+
+
+
+<div className="bg-white p-5 rounded-xl shadow text-center">
+
+<h2 className="font-bold">
+💰 Revenue
+</h2>
+
+<p className="text-4xl font-bold">
+₹{totalAmount}
+</p>
+
+</div>
+
+
+
+</div>
+
+
+
+
+
+
+
+<button
+
+onClick={deleteAllOrders}
+
+className="mt-6 bg-red-600 text-white px-6 py-3 rounded-xl font-bold"
+
+>
+
+🗑 Delete All Orders
+
+</button>
+
+
+
+
+
+
+
+<h2 className="text-3xl font-bold mt-8 mb-5">
+
+📋 Customer Orders
+
+</h2>
+
+
+
 
 
 
@@ -155,140 +310,100 @@ Admin Dashboard
 orders.length===0 ?
 
 
-<div className="bg-white p-5 rounded-xl shadow">
+<div className="bg-white p-5 rounded-xl">
 
 No Orders Found
 
 </div>
 
 
+
 :
 
 
-<div className="grid gap-5">
-
-
-{
-
 orders.map((order)=>(
+
 
 
 <div
 
 key={order.id}
 
-className="bg-white p-5 rounded-2xl shadow"
+className="bg-white p-6 rounded-xl shadow mb-5"
 
 >
 
 
-<h2 className="text-2xl font-bold text-blue-700">
+<h3 className="text-xl font-bold mb-3">
 
-{order.service}
+🆕 {order.service}
 
-</h2>
-
-
-
-<div className="mt-3 space-y-1">
-
-
-<p>
-
-👤 Name:
-{" "}
-{order.customerName || order.name || "N/A"}
-
-</p>
-
-
-<p>
-
-📱 Mobile:
-{" "}
-{order.mobile || "N/A"}
-
-</p>
+</h3>
 
 
 
 <p>
-
-🏠 Address:
-{" "}
-{order.address || "N/A"}
-
+👤 Name : {order.name}
 </p>
-
 
 
 <p>
-
-💰 Charge:
-{" "}
-₹{order.price || 0}
-
+📱 Mobile : {order.mobile}
 </p>
-
 
 
 <p>
-
-💳 Payment:
-{" "}
-{order.paymentStatus || "Pending"}
-
+📍 Address : {order.address}
 </p>
-
 
 
 <p>
-
-📌 Status:
-{" "}
-{order.status || "Pending"}
-
+💰 Price : ₹{String(order.price || "").replace(/₹/g,"")}
 </p>
 
 
-</div>
+<p>
+🧾 Transaction : {order.transaction}
+</p>
+
+
+<p>
+📌 Status : {order.status}
+</p>
 
 
 
 
+<div className="flex gap-3 mt-5">
 
-<div className="flex gap-3 mt-5 flex-wrap">
 
+<button
 
-<a
+onClick={()=>completeOrder(order.id)}
 
-href={`https://wa.me/91${order.mobile}`}
-
-target="_blank"
-
-className="bg-green-600 text-white px-4 py-2 rounded-xl"
+className="bg-green-600 text-white px-5 py-2 rounded"
 
 >
 
-WhatsApp
+✅ Complete
 
-</a>
-
-
+</button>
 
 
 
-<a
 
-href={`tel:${order.mobile}`}
 
-className="bg-blue-600 text-white px-4 py-2 rounded-xl"
+<button
+
+onClick={()=>deleteOrder(order.id)}
+
+className="bg-red-600 text-white px-5 py-2 rounded"
 
 >
 
-Call
+🗑 Delete
 
-</a>
+</button>
 
 
 
@@ -296,61 +411,8 @@ Call
 
 
 
-
-
-
-
-<select
-
-className="border p-3 rounded-xl mt-5"
-
-value={order.status || "Pending"}
-
-onChange={(e)=>
-updateStatus(
-order.id,
-e.target.value
-)
-}
-
->
-
-
-<option value="Pending">
-
-Pending
-
-</option>
-
-
-<option value="Processing">
-
-Processing
-
-</option>
-
-
-<option value="Completed">
-
-Completed
-
-</option>
-
-
-<option value="Cancelled">
-
-Cancelled
-
-</option>
-
-
-</select>
-
-
-
-
-
 </div>
+
 
 
 ))
@@ -359,20 +421,11 @@ Cancelled
 }
 
 
-</div>
-
-
-}
-
-
-
-</div>
 
 
 </main>
 
-
-)
+);
 
 
 }
