@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+
 import { db } from "../firebase";
 
 import {
@@ -9,10 +11,12 @@ import {
   deleteDoc,
   doc,
   updateDoc,
+  getDoc
 } from "firebase/firestore";
 
 
 export default function Admin(){
+  const router = useRouter();
 
 
 const [orders,setOrders]=useState<any[]>([]);
@@ -56,10 +60,90 @@ setOrders(data);
 
 useEffect(()=>{
 
+
+const checkLogin = async()=>{
+
+
+const token = localStorage.getItem("adminToken");
+
+
+if(!token){
+
+router.push("/admin-login");
+
+return;
+
+}
+
+
+
+const snap = await getDoc(
+
+doc(db,"adminSession","current")
+
+);
+
+
+
+if(!snap.exists()){
+
+router.push("/admin-login");
+
+return;
+
+}
+
+
+if(!snap.exists()){
+
+router.push("/admin-login");
+
+return;
+
+}
+
+
+
+if(snap.data().token !== token){
+  if(snap.data().token !== token){
+
+alert("Another device logged in");
+
+localStorage.removeItem("adminToken");
+
+router.push("/admin-login");
+
+return;
+
+}
+
+localStorage.removeItem("adminToken");
+
+router.push("/admin-login");
+
+return;
+
+}
+
+
+
 loadOrders();
 
-},[]);
 
+};
+
+
+
+checkLogin();
+
+
+const interval = setInterval(checkLogin, 2000);
+
+
+return () => clearInterval(interval);
+
+
+},[]);
 
 
 

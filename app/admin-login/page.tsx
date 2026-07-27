@@ -3,34 +3,70 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { db } from "../firebase";
+
+import {
+  doc,
+  setDoc,
+  serverTimestamp
+} from "firebase/firestore";
+
 
 export default function AdminLogin(){
 
 const router = useRouter();
 
 const [password,setPassword]=useState("");
-
 const [error,setError]=useState("");
 
 
 
-const login=()=>{
+const login = async()=>{
 
-if(password==="harsh@123"){
 
-localStorage.setItem(
-"adminLogin",
-"true"
-);
-
-router.push("/admin");
-
-}
-else{
+if(password !== "Harsh@15446"){
 
 setError("Wrong Password");
 
+return;
+
 }
+
+
+
+const token = Date.now().toString();
+console.log("NEW LOGIN TOKEN:", token);
+
+
+
+await setDoc(
+
+doc(db,"adminSession","current"),
+
+{
+
+token:token,
+
+time:serverTimestamp()
+
+}
+
+);
+
+
+
+localStorage.setItem(
+
+"adminToken",
+
+token
+
+);
+
+
+
+router.push("/admin");
+
 
 };
 
@@ -45,7 +81,9 @@ return(
 
 
 <h1 className="text-3xl font-bold text-blue-700">
+
 Admin Login
+
 </h1>
 
 
@@ -64,12 +102,18 @@ onChange={(e)=>setPassword(e.target.value)}
 />
 
 
+
 {
 error &&
+
 <p className="text-red-600 mt-3">
+
 {error}
+
 </p>
+
 }
+
 
 
 <button
