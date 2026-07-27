@@ -231,7 +231,31 @@ await uploadToCloudinary(birthProof);
 
 
 
-await addDoc(
+await fetch("/api/telegram",{
+
+method:"POST",
+
+headers:{
+
+"Content-Type":"application/json"
+
+},
+
+body:JSON.stringify({
+
+service:service.name,
+
+name:name,
+
+mobile:mobile,
+
+price:service.price,
+
+address:address
+
+})
+
+});
 
 collection(db,"orders"),
 
