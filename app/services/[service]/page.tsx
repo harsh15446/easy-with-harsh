@@ -236,7 +236,7 @@ createdAt:serverTimestamp()
 
 
 
-await fetch("/api/telegram",{
+const telegramRes = await fetch("/api/telegram",{
 
 method:"POST",
 
@@ -261,6 +261,12 @@ address:address
 })
 
 });
+
+
+const telegramData = await telegramRes.json();
+
+
+console.log("Telegram API Response:", telegramData);
 
 
 
