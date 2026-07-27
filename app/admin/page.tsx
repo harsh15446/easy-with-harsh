@@ -426,6 +426,26 @@ className="bg-white p-6 rounded-xl shadow mb-5"
 📱 Mobile : {order.mobile || "Not Available"}
 
 </p>
+<div className="flex gap-3 mt-3">
+
+<a
+href={`tel:${order.mobile}`}
+className="bg-blue-600 text-white px-5 py-2 rounded-xl font-bold"
+>
+📞 Call Customer
+</a>
+
+
+<a
+href={`https://wa.me/91${order.mobile}?text=Hello%20${order.customerName},%20EASY%20WITH%20HARSH%20se%20aapka%20order%20mil%20gaya%20hai.`}
+target="_blank"
+rel="noopener noreferrer"
+className="bg-green-600 text-white px-5 py-2 rounded-xl font-bold"
+>
+📲 WhatsApp
+</a>
+
+</div>
 
 
 
